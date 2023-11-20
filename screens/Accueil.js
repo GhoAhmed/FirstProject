@@ -1,18 +1,27 @@
 import { ImageBackground, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
+import Groupe from './Groupe';
+import ListProfile from './ListProfile';
+import MyProfile from './MyProfile';
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+
+
 
 export default function Accueil({ route }) {
+
+  const Tab = createMaterialBottomTabNavigator();
+
     const { name } = route.params;
     const { password } = route.params;
+    
   return (
-    <ImageBackground 
-    source={require("../assets/img.jpg")}
-    style={styles.container}>
-    <View>
-      <Text style={styles.text}>Email : {name}</Text>
-      <Text style={styles.text}>Password : {password} </Text>
-    </View>
-    </ImageBackground>
+    
+    <Tab.Navigator>
+      <Tab.Screen name='MyProfile' component={MyProfile}/>
+      <Tab.Screen name='Groupe' component={Groupe}/>
+      <Tab.Screen name='ListProfile' component={ListProfile}/>
+    </Tab.Navigator>
+  
   )
 }
 
