@@ -1,40 +1,108 @@
 import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { Button, TextInput } from 'react-native-paper';
 import firebase from '../config';
+import * as ImagePicker  from "expo-image-picker";
 
-export default function MyProfile() {
+export default function Profils() {
+    const [nom,setNom] = useState();
+    const [prenom, setPrenom] = useState();
+    const [num, setNum] = useState();
+
+    const [defaultImage, setDefaultImage] = useState(true);
+    const [urlImage, setUrlImage] = useState();
+
     const database = firebase.database();
+
+    const pickImage = async () => {
+      // No permissions request is necessary for launching the image library
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+  
+      // console.log(result);
+  
+      if (!result.canceled) {
+        setDefaultImage(false);
+        setUrlImage(result.assets[0].uri);
+      }
+    };
+    const imageToBlob = async (uri) => {
+      const blob = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+          resolve(xhr.response);
+        };
+        xhr.onerror = function (e) {
+          console.log(e);
+          reject(new TypeError("Network request failed"));
+        };
+        xhr.responseType = "blob"; //bufferArray
+        xhr.open("GET", uri, true);
+        xhr.send(null);
+      });
+      return blob;
+    };
+
+    const uploadImageLocalToFirebaseStorage = async (uriLocal) => {
+      // convertir l'image to blob
+      const blob = await imageToBlob(uriLocal);
+      // upload blob to firebase storage
+      const storage = firebase.storage();
+      const ref_mesimages = storage.ref("Mesimages");
+      const ref_image = ref_mesimages.child("image.jpg");
+
+      ref_image.put(blob);
+      // recuperer l'url
+      const url = ref_image.getDownloadURL();
+      return url;
+    }
+
   return (
     <ImageBackground 
     source={require("../assets/img.jpg")}
     style={styles.container}>
       <Text style={styles.text} >My Profile</Text>
-      <Image style={styles.image} source={require('../assets/avatar.jpg')} />
+      <TouchableOpacity onPress={()=>
+      {
+        pickImage()
+      }}>
+      <Image style={styles.image} source={defaultImage ? require('../assets/avatar.png'): {uri:urlImage}} />
+      </TouchableOpacity>
     <TextInput 
+    onChangeText={text => setNom(text)}
     style={styles.textinput}
     blurOnSubmit={false}
     placeholder='Name'></TextInput>
     <TextInput 
+    onChangeText={text => setPrenom(text)}
     style={styles.textinput}
     blurOnSubmit={false}
     placeholder='Last Name'></TextInput>
     <TextInput 
+    onChangeText={text => setNum(text)}
     style={styles.textinput}
     blurOnSubmit={false}
     placeholder='Phone Number'></TextInput>
-    <TouchableOpacity style={styles.btn}
-        onPress={ ()=>{
-        const ref_profile = database.ref("MyProfile")
-        ref_profile.set({
-            "Nom" : fname,
-            "Prenom" : lname,
-            "Tel" : tel
-        });
+     <Button style={styles.btn}
+    onPress={async()=>{
+      const ref_profils = database.ref("Profils")
+      const key = ref_profils.push().key
+      const ref = ref_profils.child("profil"+key)
+      const url = await uploadImageLocalToFirebaseStorage(urlImage,key)
+
+      ref.set({
+        nom:nom,
+        prenom:prenom,
+        numero:num,
+        url:url
+      })
     }}
-    ><Text>Validate</Text></TouchableOpacity>
-    
-            
+    >Validate</Button>
+
     </ImageBackground>
   )
 }

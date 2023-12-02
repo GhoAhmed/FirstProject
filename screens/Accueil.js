@@ -1,9 +1,9 @@
 import { ImageBackground, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Groupe from './Groupe';
-import ListProfile from './ListProfile';
 import MyProfile from './MyProfile';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
+import ListProfil from './ListProfil';
 
 
 
@@ -19,7 +19,7 @@ export default function Accueil({ route }) {
     <Tab.Navigator>
       <Tab.Screen name='MyProfile' component={MyProfile}/>
       <Tab.Screen name='Groupe' component={Groupe}/>
-      <Tab.Screen name='ListProfile' component={ListProfile}/>
+      <Tab.Screen name='ListProfil' component={ListProfil}/>
     </Tab.Navigator>
   
   )
